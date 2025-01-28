@@ -90,14 +90,10 @@
         <!-- Amount -->
         <label class="block text-gray-700 font-medium">
             Εκπαιδευτική υπηρεσία στην οποία αφορά η πληρωμή σας <span class="text-red-500">*</span>
-          <select type="select" id="amount" name="amount" 
+          <select type="select" id="amount" name="service" 
             class="w-full px-4 py-2 mt-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
             min="0" step="0.01" required>
             <option value="Accelerator">Accelerator</option>
-            <option value="Elite">Elite</option>
-            <option value="Εργαστήρι">Εργαστήρι</option>
-            <option value="Ανανέωση συνδρομής υπηρεσιών καθοδήγησης, εξυπηρέτησης & τεχνικής υποστήριξης" >Ανανέωση συνδρομής υπηρεσιών καθοδήγησης, εξυπηρέτησης & τεχνικής υποστήριξης</option>
-            <option value="Προσωπική διερευνητική συνάντηση συμβουλευτικής καθοδήγησης">Προσωπική διερευνητική συνάντηση συμβουλευτικής καθοδήγησης</option>
           </select>
         </label>
 
@@ -110,8 +106,8 @@
                 <input
                   type="radio"
                   id="Εξόφληση"
-                  name="paymentMethod"
-                  value="card"
+                  name="payment_option"
+                  value="Εξόφληση"
                   class="text-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -121,8 +117,8 @@
                 <input
                   type="radio"
                   id="1η δόση"
-                  name="paymentMethod"
-                  value="card"
+                  name="payment_option"
+                  value="1η δόση"
                   class="text-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -132,8 +128,8 @@
                 <input
                   type="radio"
                   id="2η δόση"
-                  name="paymentMethod"
-                  value="card"
+                  name="payment_option"
+                  value="2η δόση"
                   class="text-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -143,8 +139,8 @@
                 <input
                   type="radio"
                   id="3η δόση"
-                  name="paymentMethod"
-                  value="card"
+                  name="payment_option"
+                  value="3η δόση"
                   class="text-blue-500 focus:ring-blue-500"
                   required
                 />
@@ -172,26 +168,32 @@
             <label class="flex items-center">
               <input type="radio" id="bankTransfer" name="paymentMethod" value="bank" 
                 class="text-blue-500 focus:ring-blue-500" required>
-              <span class="ml-2 text-gray-700">Τραπεζική μεταφορά</span>
+              <span class="ml-2 text-gray-700">Κατάθεση σε λογαριασμό Τράπεζας Revolute</span>
             </label>
           </div>
         </fieldset>
 
-        <!-- Upload Proof of Payment -->
+        <!-- Proof Upload Section -->
         <div id="proofUpload" style="display: none;" class="mt-4">
             <label class="block text-gray-700 font-medium">
-              Φορτώστε αποδεικτικό <span class="text-red-500">*</span>
+            Φορτώστε αποδεικτικό <span class="text-red-500">*</span>
             </label>
             <br>
             <div class="relative flex items-center justify-center border-dashed border-2 border-gray-300 p-4 rounded-lg bg-gray-50">
-              <input type="file" id="proof" name="proof" accept=".pdf, image/*" 
-                class="absolute inset-0 opacity-0 cursor-pointer" required>
-              <div class="text-center">
+            <input
+                type="file"
+                id="proof"
+                name="proof"
+                accept=".pdf, image/*"
+                class="absolute inset-0 opacity-0 cursor-pointer"
+                required
+            />
+            <div id="fileDisplay" class="text-center">
                 <p class="text-gray-500 font-medium">Drag & drop your file here or click to upload</p>
                 <p class="text-sm text-gray-400">Accepted formats: .pdf, images</p>
-              </div>
             </div>
-          </div>
+            </div>
+        </div>
 
         <!-- Submit Button -->
         <div class="mt-6 text-center">
@@ -205,46 +207,67 @@
   </div>
 
   <script>
-    // Handling file input visibility for proof of payment upload
-    const paymentMethodRadios = document.querySelectorAll('input[name="paymentMethod"]');
-    const proofUpload = document.getElementById('proofUpload');
-    
-    paymentMethodRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        if (document.getElementById('bankTransfer').checked) {
-          proofUpload.style.display = 'block';
-        } else {
-          proofUpload.style.display = 'none';
-        }
-      });
-    });
-
-    // Handle form submission
     const form = document.getElementById('webhookForm');
-    form.addEventListener('submit', async (event) => {
+    const proofUpload = document.getElementById('proofUpload');
+    const cardPayment = document.getElementById('cardPayment');
+    const bankTransfer = document.getElementById('bankTransfer');
+    const proofField = document.getElementById('proof');
+    const fileDisplay = document.getElementById('fileDisplay');
+  
+    form.addEventListener('change', function () {
+      if (bankTransfer.checked) {
+        proofUpload.style.display = 'block';
+        proofField.setAttribute('required', 'required');
+      } else {
+        proofUpload.style.display = 'none';
+        proofField.removeAttribute('required');
+      }
+    });
+  
+    proofField.addEventListener('change', function () {
+      if (proofField.files.length > 0) {
+        const fileName = proofField.files[0].name;
+        fileDisplay.innerHTML = `
+          <p class="text-gray-700 font-medium">Selected file:</p>
+          <p class="text-gray-900 font-semibold">${fileName}</p>
+        `;
+      } else {
+        fileDisplay.innerHTML = `
+          <p class="text-gray-500 font-medium">Drag & drop your file here or click to upload</p>
+          <p class="text-sm text-gray-400">Accepted formats: .pdf, images</p>
+        `;
+      }
+    });
+  
+    form.addEventListener('submit', async function (event) {
       event.preventDefault();
-
       const formData = new FormData(form);
-      const webhookUrl = 'https://hook.eu2.make.com/1s1nsmxzts8xivpn3amg7g2qddnqo9qc'; // Add your full webhook URL here
-
+      const webhookUrl = 'https://hook.eu2.make.com/1s1nsmxzts8xivpn3amg7g2qddnqo9qc';
+  
       try {
+        // Trigger webhook before redirect
         const response = await fetch(webhookUrl, {
           method: 'POST',
-          body: formData,
+          body: formData
         });
-
+  
         if (response.ok) {
-          alert('Η φόρμα υποβλήθηκε επιτυχώς!');
-          form.reset();
-          proofUpload.style.display = 'none'; // Reset proof upload section visibility
+          // Redirect based on the selected payment option
+          if (cardPayment.checked) {
+            window.location.href = 'https://checkout.revolut.com/pay/cf7eb2fb-506d-45f3-b1cd-96e5e0ed635b';
+          } else if (bankTransfer.checked && proofField.files.length > 0) {
+            // Redirect with no delay after successful webhook for bank transfer
+            window.location.href = 'https://abhinavkm.github.io/thankyou-page/'; // Adjust to your desired URL
+          }
         } else {
-          alert('Παρουσιάστηκε σφάλμα κατά την υποβολή. Παρακαλούμε προσπαθήστε ξανά.');
+          console.error('Webhook failed:', response.statusText);
         }
       } catch (error) {
-        console.error('Σφάλμα:', error);
-        alert('Παρουσιάστηκε πρόβλημα σύνδεσης. Παρακαλούμε ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.');
+        console.error('Error:', error);
       }
     });
   </script>
+
+
 </body>
 </html>
